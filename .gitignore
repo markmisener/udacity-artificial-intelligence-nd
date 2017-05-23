@@ -1,3 +1,8 @@
+# specific directories and folders
+.DS_Store
+sudoku/.DS_Store
+projects
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
