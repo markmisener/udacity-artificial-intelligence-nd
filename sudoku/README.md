@@ -4,8 +4,8 @@
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
 A: For the naked twins problem, we limit the search space to potential candidates,  
-and narrow even further to true naked-twin pairs. We then remove possible values and
-continue applying this constraint until the solution or stall of the algorithm.
+and narrow even further to true naked-twin pairs, enforcing the constraint that
+no squares outside the naked-twins pair can contain the twin values.
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
