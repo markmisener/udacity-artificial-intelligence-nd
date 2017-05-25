@@ -2,6 +2,8 @@
 .DS_Store
 sudoku/.DS_Store
 projects
+sudoku/*.zip
+sudoku/*.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
