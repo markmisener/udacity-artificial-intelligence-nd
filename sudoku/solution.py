@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+import itertools
+
 assignments = []
 
 digits   = '123456789'
@@ -40,25 +43,20 @@ def naked_twins(values):
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
-    # identify potential naked twins
-    p_twins = [b for b in values.keys() if len(values[b]) == 2]
-    n_twins = [[b1,b2] for b1 in p_twins for b2 in peers[b1] if set(values[b1])==set(values[b2]) ]
-
-    for i in range(len(n_twins)):
-        b_1 = n_twins[i][0]
-        b_2 = n_twins[i][1]
-
-        # find peers
-        peers1 = set(peers[b_1])
-        peers2 = set(peers[b_2])
-        peers_int = peers1 & peers2
-
-        # remove values from peers
-        for peer_val in peers_int:
-            if len(values[peer_val])>2:
-                for rm_val in values[b_1]:
-                    values = assign_value(values, peer_val, values[peer_val].replace(rm_val,''))
+    for unit in unitlist:
+        pairs = [box for box in unit if len(values[box]) == 2]
+        possible_twins = [list(pair) for pair in itertools.combinations(pairs, 2)]
+        for pair in possible_twins:
+            box1 = pair[0]
+            box2 = pair[1]
+            if values[box1] == values[box2]:
+                for box in unit:
+                    if box != box1 and box != box2:
+                        for digit in values[box1]:
+                            values[box] = values[box].replace(digit,'')
     return values
+
+
 
 def grid_values(grid, show_dots=False):
     """
@@ -132,7 +130,6 @@ def reduce_puzzle(values):
     Otherwise, the loop will stop whenever the sudoku stays the same during one iteration.
     '''
 
-    solved_values = [box for box in values.keys() if len(values[box]) == 1]
     stalled = False
     while not stalled:
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
@@ -174,8 +171,11 @@ def solve(grid):
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
     values = grid_values(grid)
-    values = search(values)
-    return values
+    solved = search(values)
+    if solved:
+        return solved
+    else:
+        return False
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
