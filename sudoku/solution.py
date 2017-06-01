@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 import itertools
-
 assignments = []
 
-digits   = '123456789'
-rows     = 'ABCDEFGHI'
-cols     = digits
+digits = '123456789'
+rows = 'ABCDEFGHI'
+cols = digits
 
 def cross(A, B):
     "Cross product of elements in A and elements in B."
     return [a+b for a in A for b in B]
 
-# variables for typical sudoku
+# variables for regular sudoku
 squares = cross(rows, cols)
-unitlist = ([cross(rows, c) for c in cols] +
-            [cross(r, cols) for r in rows] +
-            [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')])
+row_units = [cross(r, cols) for r in rows]
+column_units = [cross(rows, c) for c in cols]
+square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
+unitlist = row_units + column_units + square_units
 units = dict((s, [u for u in unitlist if s in u]) for s in squares)
 peers = dict((s, set(sum(units[s],[]))-set([s]))for s in squares)
 
@@ -26,6 +26,7 @@ diag_unitlist = unitlist + [diag_1, diag_2]
 diag_units = dict((s, [u for u in diag_unitlist if s in u]) for s in squares)
 diag_peers = dict((s, set(sum(diag_units[s],[]))-set([s]))for s in squares)
 
+# from classroom lesson "Encoding the board"
 def assign_value(values, box, value):
     """
     Please use this function to update your values dictionary!
@@ -43,21 +44,21 @@ def naked_twins(values):
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
+    # Find all instances of naked twins
     for unit in unitlist:
         pairs = [box for box in unit if len(values[box]) == 2]
         possible_twins = [list(pair) for pair in itertools.combinations(pairs, 2)]
+        # Eliminate the naked twins as possibilities for their peers
         for pair in possible_twins:
-            box1 = pair[0]
-            box2 = pair[1]
-            if values[box1] == values[box2]:
+            if values[pair[0]] == values[pair[1]]:
                 for box in unit:
-                    if box != box1 and box != box2:
-                        for digit in values[box1]:
+                    if box != pair[0] and box != pair[1]:
+                        for digit in values[pair[1]]:
                             values[box] = values[box].replace(digit,'')
     return values
 
 
-
+# from my solution to improved grid values in "Strategy 1: Elimination" lesson
 def grid_values(grid, show_dots=False):
     """
     Pulled from Udacity project
@@ -69,18 +70,16 @@ def grid_values(grid, show_dots=False):
             Keys: The boxes, e.g., 'A1'
             Values: The value in each box, e.g., '8'. If the box has no value, then the value will be '123456789'.
     """
-    chars = []
-    for c in grid:
-        if c in digits:
-            chars.append(c)
-        if c == '.':
-            if show_dots:
-                chars.append('.')
-            else:
-                chars.append(digits)
-    assert len(chars) == 81
-    return dict(zip(squares, chars))
+    values = []
+    all_numbers = '123456789'
+    for value in grid:
+        if value == '.':
+            values.append(all_numbers)
+        elif value in all_numbers:
+            values.append(value)
+    return {k: v for k, v in zip(squares, values)}
 
+# from lesson "Strategy 1: Elimination"
 def display(values):
     """
     Display the values as a 2-D grid.
@@ -95,6 +94,7 @@ def display(values):
         if r in 'CF': print(line)
     print()
 
+# from my solution to Implement eliminate() in "Strategy 1: Elimination"
 def eliminate(values):
     '''
     Goes through all the boxes. If a box has only one available value,
@@ -109,39 +109,44 @@ def eliminate(values):
             assign_value(values, peer, values[peer])
     return values
 
+# from my solution to "Strategy 2: Only Choice" lesson
 def only_choice(values):
     '''
     Goes through all the units u. If a unit has a certain value d that will only
     fit in one box of u, it will assign d to this box.
     '''
-
-    for unit in diag_unitlist:
-        for digit in digits:
+    for unit in unitlist:
+        for digit in '123456789':
             dplaces = [box for box in unit if digit in values[box]]
             if len(dplaces) == 1:
                 values[dplaces[0]] = digit
-                assign_value(values, dplaces[0], values[dplaces[0]])
     return values
 
+# from my solution to "Constraint Propogation" lesson
 def reduce_puzzle(values):
     '''
     It will apply eliminate and only_choice repeatedly.
     If at any point, there is a box with zero available values, it will return False.
     Otherwise, the loop will stop whenever the sudoku stays the same during one iteration.
     '''
-
     stalled = False
     while not stalled:
+        # Check how many boxes have a determined value
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
-        values = eliminate(values)
-        values = only_choice(values)
-        values = naked_twins(values)
+        # Use the Eliminate Strategy
+        values =  eliminate(values)
+        # Use the Only Choice Strategy
+        values =  only_choice(values)
+        # Check how many boxes have a determined value, to compare
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
+        # If no new values were added, stop the loop.
         stalled = solved_values_before == solved_values_after
+        # Sanity check, return False if there is a box with zero available values:
         if len([box for box in values.keys() if len(values[box]) == 0]):
             return False
     return values
 
+# from my solution to "Coding the Solution" lession on search
 def search(values):
     '''
     Using depth-first search and propagation, try all possible values.
@@ -153,7 +158,9 @@ def search(values):
         return False
     if all(len(values[s]) == 1 for s in squares):
         return values
+    # Choose one of the unfilled squares with the fewest possibilities
     n,s = min((len(values[s]), s) for s in squares if len(values[s]) > 1)
+    # Now use recursion to solve each one of the resulting sudokus, and if one returns a value (not False), return that answer!
     for value in values[s]:
         new_sudoku = values.copy()
         new_sudoku[s] = value
