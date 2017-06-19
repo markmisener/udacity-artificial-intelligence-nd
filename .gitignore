@@ -4,6 +4,8 @@ sudoku/.DS_Store
 projects
 sudoku/*.zip
 sudoku/*.json
+isolation/*.docx
+isolation/*.pages
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
