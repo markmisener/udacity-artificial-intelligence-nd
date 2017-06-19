@@ -25,12 +25,11 @@ def check_time(time_left, timer_threshold):
     if time_left < timer_threshold:
         raise SearchTimeout()
 
-
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
-    of the given player. This score is equal to the square of the distance from
-    the center of the board to the position of the player. Code for this
-    score is based on the center_score method in sample_players.py.
+    of the given player. This heuristic determines the difference between the
+    available moves for each player, with a penalty for moves into a corner
+    position before 2/3 of the board is played.
 
     This should be the best heuristic function for your project submission.
 
@@ -57,17 +56,38 @@ def custom_score(game, player):
     if win_or_loss_bool:
         return win_or_loss_bool
 
-    # calculate number of moves available to the opponent and return the
-    # negative equivalent
-    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
-    return float(opp_moves) * -1
+    # create a current state weight variable, which is increased near end game
+    if len(game.get_blank_spaces()) < game.width * game.height / 3.:
+        current_state = 4
+    else:
+        current_state = 1
 
+    # define game board corners
+    last_col = game.width - 1
+    last_row = game.height - 1
+    corners = [(0, 0), (0, last_col),
+               (last_row, 0), (last_row, last_col)]
+
+    # get a list of available moves for each player
+    own_moves = game.get_legal_moves(player)
+    opp_moves = game.get_legal_moves(game.get_opponent(player))
+
+    # get a list of available corner moves for each player
+    own_in_corner = [move for move in own_moves if move in corners]
+    opp_in_corner = [move for move in opp_moves if move in corners]
+
+    # Weight score by state and corner moves
+    own_moves_weighted = len(own_moves) - (current_state * len(own_in_corner))
+    opp_moves_weighted = len(opp_moves) + (current_state * len(opp_in_corner))
+
+    # return difference between the player and opponent's weighted moves
+    return float(own_moves_weighted - opp_moves_weighted)
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
-    of the given player. This score is equal to the negative equivalent of the
-    opponents available moves. This score will optimize toward minimizing the
-    opponent's available moves.
+    of the given player. This score is equal to the square of the distance from
+    the center of the board to the position of the player. Code for this
+    score is based on the center_score method in sample_players.py.
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
@@ -101,8 +121,9 @@ def custom_score_2(game, player):
 
 def custom_score_3(game, player):
     """Calculate the heuristic value of a game state from the point of view
-    of the given player. This heuristic determines the moves available for both
-    players and places higher weights toward end game.
+    of the given player. This score is equal to the negative equivalent of the
+    opponents available moves. This score will optimize toward minimizing the
+    opponent's available moves.
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
@@ -127,16 +148,10 @@ def custom_score_3(game, player):
     if win_or_loss_bool:
         return win_or_loss_bool
 
-    # determine the available moves for both players
-    opp = game.get_opponent(player)
-    opp_moves = game.get_legal_moves(opp)
-    p_moves = game.get_legal_moves()
-    common_moves = opp_moves and p_moves
-
-    # place higher weights toward end game
-    factor = 1 / (game.move_count + 1)
-    ifactor = 1 / factor
-    return float(len(common_moves) * factor + ifactor * len(game.get_legal_moves()))
+    # calculate number of moves available to the opponent and return the
+    # negative equivalent
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(opp_moves) * -1
 
 
 class IsolationPlayer:
@@ -255,8 +270,14 @@ class MinimaxPlayer(IsolationPlayer):
         """
         # raise error if time has run out
         check_time(self.time_left(), self.TIMER_THRESHOLD)
-
         return self.minimax_move(game, depth)[0]
+
+    def configure_player(self, game):
+        """ Return function and value for player """
+        if game.active_player == self:
+            return max, float("-inf")
+        else:
+            return min, float("inf")
 
     def minimax_move(self, game, depth):
         # raise error if time has run out
@@ -268,11 +289,10 @@ class MinimaxPlayer(IsolationPlayer):
         # initialize best_move
         best_move =  (-1, -1)
 
-        if game.active_player == self:
-            func, value = max, float("-inf")
-        else:
-            func, value = min, float("inf")
+        # configure function for players
+        func, value = self.configure_player(game)
 
+        # use iterative deepening to search for the best move up to the given depth
         for move in game.get_legal_moves():
             next_ply = game.forecast_move(move)
             score = self.minimax_move(next_ply, depth - 1)[1]
@@ -375,6 +395,13 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         return self.ab_move(game, depth)[0]
 
+    def configure_player(self, game):
+        """ Return function, value, is_alpha for player """
+        if game.active_player == self:
+            return float("-inf"), max, True
+        else:
+            return float("inf"), min, False
+
     def ab_move(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         # raise error if time has run out
         check_time(self.time_left(), self.TIMER_THRESHOLD)
@@ -386,15 +413,9 @@ class AlphaBetaPlayer(IsolationPlayer):
             return best_move, self.score(game, self)
 
         # configure values and function for maximizing_player
-        if game.active_player == self:
-            value = float("-inf")
-            func = max
-            is_alpha = True
-        else:
-            value = float("inf")
-            func = min
-            is_alpha = False
+        value, func, is_alpha = self.configure_player(game)
 
+        # use iterative deepening to search for the best move up to the given depth
         for move in game.get_legal_moves():
             next_ply = game.forecast_move(move)
             score = self.ab_move(next_ply, depth - 1, alpha, beta)[1]
