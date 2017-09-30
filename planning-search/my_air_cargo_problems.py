@@ -54,6 +54,23 @@ class AirCargoProblem(Problem):
         # or 'Load(C2, P2, JFK)'.  The actions for the planning problem must be concrete because the problems in
         # forward search and Planning Graphs must use Propositional Logic
 
+        # TODO: USE THE FOLLOWING FRAMEWORK FROM example_have_cake.py TO BUILD OUT ACTION OBJECTS
+        precond_pos = [expr("Have(Cake)")]
+        precond_neg = []
+        effect_add = [expr("Eaten(Cake)")]
+        effect_rem = [expr("Have(Cake)")]
+        eat_action = Action(expr("Eat(Cake)"),
+                            [precond_pos, precond_neg],
+                            [effect_add, effect_rem])
+        precond_pos = []
+        precond_neg = [expr("Have(Cake)")]
+        effect_add = [expr("Have(Cake)")]
+        effect_rem = []
+        bake_action = Action(expr("Bake(Cake)"),
+                             [precond_pos, precond_neg],
+                             [effect_add, effect_rem])
+        return [eat_action, bake_action]
+
         def load_actions():
             """Create all concrete Load actions and return a list
 
