@@ -6,6 +6,7 @@ sudoku/*.zip
 sudoku/*.json
 isolation/*.docx
 isolation/*.pages
+pacman
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
