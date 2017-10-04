@@ -2,10 +2,13 @@
 
 ### My solutions to Udacity's Artificial Intelligence Nano Degree projects.
 
-## [Sudoku Game Agent](https://github.com/markmisener/udacity-artificial-intelligence-nd/tree/master/sudoku)
+### [Sudoku Game Agent](https://github.com/markmisener/udacity-artificial-intelligence-nd/tree/master/sudoku)
 
-### A game agent that uses depth-first search constraint propagation to solve a sudoku puzzle.
+ A game agent that uses depth-first search constraint propagation to solve a sudoku puzzle.
 
-## [Isolation Game Agent](https://github.com/markmisener/udacity-artificial-intelligence-nd/tree/master/sudoku)
+### [Isolation Game Agent](https://github.com/markmisener/udacity-artificial-intelligence-nd/tree/master/sudoku)
 
-### A game agent that uses depth-limited minimax search or alpha-beta pruning to play Isolation.
+A game agent that uses depth-limited minimax search or alpha-beta pruning to play Isolation.
+
+### [Planning Search](https://github.com/markmisener/udacity-artificial-intelligence-nd/tree/master/planning-search)
+Planning search agent that solves deterministic logistics planning problems for an Air Cargo transport system.
