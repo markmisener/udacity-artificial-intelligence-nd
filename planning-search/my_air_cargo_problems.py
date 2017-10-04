@@ -191,7 +191,7 @@ class AirCargoProblem(Problem):
         goals = set(self.goal)
 
         actions = self.actions_list[:]
-#        actions = sorted(self.actions_list, key=lambda x: len(e for e in x.effect_add if e in goals), reverse=True)
+
         while(goals):
             next_node = max(actions, key=lambda x: len([eff for eff in x.effect_add if eff in goals]))
             actions.remove(next_node)
