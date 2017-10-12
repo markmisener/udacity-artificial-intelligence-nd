@@ -302,7 +302,6 @@ class MinimaxPlayer(IsolationPlayer):
 
         return (best_move, value)
 
-
 class AlphaBetaPlayer(IsolationPlayer):
     """Game-playing agent that chooses a move using iterative deepening minimax
     search with alpha-beta pruning. You must finish and test this player to
@@ -312,27 +311,22 @@ class AlphaBetaPlayer(IsolationPlayer):
     def get_move(self, game, time_left):
         """Search for the best move from the available legal moves and return a
         result before the time limit expires.
-
         Modify the get_move() method from the MinimaxPlayer class to implement
         iterative deepening search instead of fixed-depth search.
-
         **********************************************************************
         NOTE: If time_left() < 0 when this function returns, the agent will
               forfeit the game due to timeout. You must return _before_ the
               timer reaches 0.
         **********************************************************************
-
         Parameters
         ----------
         game : `isolation.Board`
             An instance of `isolation.Board` encoding the current state of the
             game (e.g., player locations and blocked cells).
-
         time_left : callable
             A function that returns the number of milliseconds left in the
             current turn. Returning with any less than 0 ms remaining forfeits
             the game.
-
         Returns
         -------
         (int, int)
@@ -340,97 +334,129 @@ class AlphaBetaPlayer(IsolationPlayer):
             (-1, -1) if there are no available legal moves.
         """
         self.time_left = time_left
-        move = (-1, -1)
-        for i in range(1, 10000):
+
+        # Initialize best move
+        best_move = (-1, -1)
+
+        # Initialize search depth
+        search_depth = 1
+
+        # search for best move, or until time expires
+        while True:
             try:
-                move = self.alphabeta(game, i)
+                best_move = self.alphabeta(game, search_depth)
+                search_depth = search_depth + 1
             except SearchTimeout:
-                return move
-        return move
+                break
+        return best_move
+
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
         described in the lectures.
-
         This should be a modified version of ALPHA-BETA-SEARCH in the AIMA text
         https://github.com/aimacode/aima-pseudocode/blob/master/md/Alpha-Beta-Search.md
-
         **********************************************************************
             You MAY add additional methods to this class, or define helper
                  functions to implement the required functionality.
         **********************************************************************
-
         Parameters
         ----------
         game : isolation.Board
             An instance of the Isolation game `Board` class representing the
             current game state
-
         depth : int
             Depth is an integer representing the maximum number of plies to
             search in the game tree before aborting
-
         alpha : float
             Alpha limits the lower bound of search on minimizing layers
-
         beta : float
             Beta limits the upper bound of search on maximizing layers
-
         Returns
         -------
         (int, int)
             The board coordinates of the best move found in the current search;
             (-1, -1) if there are no legal moves
-
         Notes
         -----
             (1) You MUST use the `self.score()` method for board evaluation
                 to pass the project tests; you cannot call any other evaluation
                 function directly.
-
             (2) If you use any helper functions (e.g., as shown in the AIMA
                 pseudocode) then you must copy the timer check into the top of
                 each helper function or else your agent will timeout during
                 testing.
         """
-        return self.ab_move(game, depth)[0]
-
-    def configure_player(self, game):
-        """ Return function, value, is_alpha for player """
-        if game.active_player == self:
-            return float("-inf"), max, True
-        else:
-            return float("inf"), min, False
-
-    def ab_move(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         # raise error if time has run out
         check_time(self.time_left(), self.TIMER_THRESHOLD)
 
-        # initalize best_move
-        best_move = (-1, -1)
+        return self.alphabeta_move(game, depth, alpha, beta)[1]
 
+    def alphabeta_move(self, game, depth, alpha, beta, maximize_layer=True):
+        """This is a helper function to  implement
+        alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf"))
+        Parameters
+        ----------
+        game : isolation.Board
+            An instance of the Isolation game `Board` class representing the
+            current game state
+        depth : int
+            Depth is an integer representing the maximum number of plies to
+            search in the game tree before aborting
+        alpha : float
+            Alpha limits the lower bound of search on minimizing layers
+        beta : float
+            Beta limits the upper bound of search on maximizing layers
+        Returns
+        -------
+        tuple
+            (score, move)
+        """
+        # raise error if time has run out
+        check_time(self.time_left(), self.TIMER_THRESHOLD)
+
+        # Get legal moves
+        legal_moves = game.get_legal_moves()
+
+        # return if no legal moves
+        if not legal_moves:
+            return game.utility(self), (-1, -1)
+
+        # score the game state if we reach depth of 0
         if depth == 0:
-            return best_move, self.score(game, self)
+            return self.score(game, self), (-1, -1)
 
-        # configure values and function for maximizing_player
-        value, func, is_alpha = self.configure_player(game)
+        # initialize best move
+        best_move = None
 
-        # use iterative deepening to search for the best move up to the given depth
-        for move in game.get_legal_moves():
-            next_ply = game.forecast_move(move)
-            score = self.ab_move(next_ply, depth - 1, alpha, beta)[1]
-            if score == func(value, score):
-                best_move = move
-                value = score
-            if is_alpha:
-                if value >= beta:
-                    return best_move, value
-                else:
-                    alpha = max(value, alpha)
-            else:
-                if value <= alpha:
-                    return best_move, value
-                else:
-                    beta = min(value, beta)
-
-        return best_move, value
+        if maximize_layer:
+            # initialize best score
+            best_score = float("-inf")
+            for move in legal_moves:
+                # forecast moves
+                next_ply = game.forecast_move(move)
+                # calcualte score of the next ply
+                score, _ = self.alphabeta_move(next_ply, depth - 1, alpha, beta, False)
+                # update best score if the score is greater
+                if score > best_score:
+                    best_score, best_move = score, move
+                if best_score >= beta:
+                    break
+                # set alpha score
+                alpha = max(alpha, best_score)
+        else:
+            # initialize best score
+            best_score = float("inf")
+            for move in legal_moves:
+                # forecast moves
+                next_ply = game.forecast_move(move)
+                # calculate score of the next ply
+                score, _ = self.alphabeta_move(next_ply, depth - 1, alpha, beta, True)
+                # update best score if the score is less than best score
+                if score < best_score:
+                    best_score, best_move = score, move
+                if best_score <= alpha:
+                    break
+                # set beta score
+                beta = min(beta, best_score)
+        return best_score, best_move
