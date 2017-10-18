@@ -85,9 +85,9 @@ def custom_score(game, player):
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
-    of the given player. This score is equal to the square of the distance from
-    the center of the board to the position of the player. Code for this
-    score is based on the center_score method in sample_players.py.
+    of the given player. This score is equal to the ratio of moves available to
+    the player to the moves available to the opponent. This heuristic will
+    maximize legal moves for the player while minmizing moves for the opponent.
 
     Note: this function should be called from within a Player instance as
     `self.score()` -- you should not need to call this function directly.
@@ -112,11 +112,13 @@ def custom_score_2(game, player):
     if win_or_loss_bool:
         return win_or_loss_bool
 
-    # calculate a score equal to square of the distance from the center of the
-    # board to the position of the player.
-    w, h = game.width / 2., game.height / 2.
-    y, x = game.get_player_location(player)
-    return float((h - y)**2 + (w - x)**2)
+    # get all legal moves
+    my_moves = len(game.get_legal_moves())
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    total_moves = my_moves + opp_moves
+
+    # calculate the ratio of my moves available to the total moves available
+    return float(my_moves)/total_moves
 
 
 def custom_score_3(game, player):

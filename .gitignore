@@ -8,6 +8,9 @@ isolation/*.docx
 isolation/*.pages
 pacman
 *.pdf
+*.zip
+*.json
+*.pages
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
