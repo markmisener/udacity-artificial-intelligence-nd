@@ -491,15 +491,13 @@ class PlanningGraph():
         :return: int
         '''
         level_sum = 0
-        for goal in self.problem.goal:
-            level_sum+= self._determine_level_cost(goal)
+        goals = self.problem.goal
+        s_levels = self.s_levels
+        for goal in goals:
+            node = PgNode_s(goal, True)
+            s_levels_list = enumerate(s_levels)
+            for level, s_nodes in s_levels_list:
+                if node in s_nodes:
+                    level_sum += level
+                    break
         return level_sum
-
-    def _determine_level_cost(self, goal) -> int:
-        '''The cost of the individual goal
-        :return: int
-        '''
-        for i,level in enumerate(self.s_levels):
-            for node_s in level:
-                if node_s.literal==goal:
-                    return i

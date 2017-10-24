@@ -1,4 +1,5 @@
 # specific directories and folders
+reminder.md
 .DS_Store
 sudoku/.DS_Store
 projects
