@@ -12,3 +12,6 @@ A game agent that uses depth-limited minimax search or alpha-beta pruning to pla
 
 ### [Planning Search](https://github.com/markmisener/udacity-artificial-intelligence-nd/tree/master/planning-search)
 Planning search agent that solves deterministic logistics planning problems for an Air Cargo transport system.
+
+### [HMM ASL Recognizer](https://github.com/markmisener/udacity-artificial-intelligence-nd/tree/master/HMM-ASL-Recognizer)
+Sign Language Recognition System that can recognize words communicated using the American Sign Language (ASL). The system trains a set of Hidden Markov Models (HMMs) using part of the dataset to identify individual words from test sequences.
