@@ -75,7 +75,7 @@ class SelectorBIC(ModelSelector):
         best_score, best_model  = float("inf"), None
 
         # determine the lowest possible bic score and model
-        for n_components in range(self.min_n_components, self.max_n_components):
+        for n_components in range(self.min_n_components, self.max_n_components+1):
             try:
                 # create the base model
                 model = self.base_model(n_components)
@@ -84,7 +84,8 @@ class SelectorBIC(ModelSelector):
                 # determine number of features
                 n_features = self.X.shape[1]
                 # calculate number of data points
-                n_points = n_components * (n_components - 1) + 2 * n_features * n_components
+                # changed to: n^2 + 2*n*f - 1 based on reviewer advice
+                n_points = n_components**2 + 2 * n_features * n_components -1
                 # calculate logN
                 logN = np.log(self.X.shape[0])
                 # calculate bic score
@@ -112,31 +113,28 @@ class SelectorDIC(ModelSelector):
         DIC score for n between self.min_n_components and self.max_n_components
         :return: GaussianHMM object
         """
-        warnings.filterwarnings("ignore")
-
-        # create two lists to hold model scores and logs
-        scores, logs = [], []
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
 
         try:
-            for n_component in self.n_components:
-                # create model
-                model = self.base_model(n_component)
-                # append model score to logs list
-                logs.append(model.score(self.X, self.lengths))
-            # sum all logs
-            sum_logs = sum(logs)
-            # get length of components
-            m = len(self.n_components)
-            for each_log in logs:
-                # calculate dic score
-                # DIC = log(P(X(i)) - 1/(M-1)SUM(log(P(X(all but i))
-                anti_likelihood = (sum_logs - each_log) / (m - 1)
-                scores.append(each_log - anti_likelihood)
-        except Exception as e:
+            best_model = None
+            best_score = float("-Inf")
+            for n in range(self.min_n_components, self.max_n_components + 1):
+                model = self.base_model(n)
+                scores = []
+                for w, (X, lengths) in self.hwords.items():
+                    if w != self.this_word:
+                        # Please develop the rest of your function below
+                        X, lengths = self.hwords[w]
+                        scores.append(model.score(X, lengths))
+                # Calculate DIC Score
+                dic_score =  1/(len(self.hwords.items())-1)*sum(scores)
+                if  dic_score < best_score:
+                    best_score = dic_score
+                    best_model = model
+        except:
             pass
-        # determine best score and return corresponding model
-        best_score = self.n_components[np.argmax(scores)] if scores else self.n_constant
-        return self.base_model(best_score)
+        return best_model if best_model else self.base_model(self.n_constant)
+
 
 
 class SelectorCV(ModelSelector):
@@ -153,15 +151,13 @@ class SelectorCV(ModelSelector):
         split_method = KFold()
 
         try:
-            for n_component in self.n_components:
+            for n_component in range(self.min_component, self.max_component +1):
                 # create model
                 model = self.base_model(n_component)
                 # create list to store calculated model mean scores
                 fold_scores = []
-                for _, test in split_method.split(self.sequences):
-                    # calculate test sequences
-                    test_X, test_length = combine_sequences(test, self.sequences)
-                    # append model score to fold scores list
+                for _, test_idx in split_method.split(self.sequences):
+                    test_X, test_length = combine_sequences(test_idx, self.sequences)
                     fold_scores.append(model.score(test_X, test_length))
 
                 # append mean of all fold scores to mean scores list
