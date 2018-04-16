@@ -123,12 +123,13 @@ class SelectorDIC(ModelSelector):
                 scores = []
                 for w, (X, lengths) in self.hwords.items():
                     if w != self.this_word:
-                        # Please develop the rest of your function below
                         X, lengths = self.hwords[w]
                         scores.append(model.score(X, lengths))
                 # Calculate DIC Score
-                dic_score =  1/(len(self.hwords.items())-1)*sum(scores)
-                if  dic_score < best_score:
+                logL = model.score(self.X, self.lengths)
+                dic_score = logL - sum(scores) / (len(self.hwords.items()) - 1)
+
+                if  dic_score > best_score:
                     best_score = dic_score
                     best_model = model
         except:
@@ -144,24 +145,32 @@ class SelectorCV(ModelSelector):
     def select(self):
         warnings.filterwarnings("ignore")
 
-        # create list to store mean scores
-        mean_scores = []
+        # initialize model
+        model = None
 
         # set split method
         split_method = KFold()
 
+        # initialize list for mean scores
+        mean_scores = []
         try:
             for n_component in range(self.min_component, self.max_component +1):
-                # create model
-                model = self.base_model(n_component)
                 # create list to store calculated model mean scores
                 fold_scores = []
-                for _, test_idx in split_method.split(self.sequences):
+                for train_idx, test_idx in split_method.split(self.sequences):
+                    train_X, train_length = combine_sequences(train_idx, self.sequences)
                     test_X, test_length = combine_sequences(test_idx, self.sequences)
-                    fold_scores.append(model.score(test_X, test_length))
+                    try:
+                        # create model
+                        # self.X, self.lengths = train_x, train_length
+                        model = self.base_model(n_component).fit(train_x, train_length)
+                        # add fold score to list
+                        fold_scores.append(trained_model.score(X_test, lengths_test))
+                    except Exception as e:
+                        break
 
                 # append mean of all fold scores to mean scores list
-                mean_scores.append(np.mean(fold_scores))
+                mean_scores.append(np.mean(scores))
         except Exception as e:
             pass
 
