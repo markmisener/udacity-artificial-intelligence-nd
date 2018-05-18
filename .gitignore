@@ -1,4 +1,10 @@
-# specific directories and folders
+# file types
+*.pdf
+*.zip
+*.json
+*.pages
+
+# specific directories and files
 HMM-ASL-Recognizer/submission
 reminder.md
 .DS_Store
@@ -9,10 +15,14 @@ sudoku/*.json
 isolation/*.docx
 isolation/*.pages
 pacman
-*.pdf
-*.zip
-*.json
-*.pages
+Udacity-Jupyter.pem
+dog-breed-classifier/dogImages/
+dog-breed-classifier/lfw/
+dog-breed-classifier/.ipynb_checkpoints/
+dog-breed-classifier/saved_models/weights.best.from_scratch.hdf5
+dog-breed-classifier/saved_models/weights.best.vgg16.hdf5
+dog-breed-classifier/bottleneck_features/DogVGG16Data.npz
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
