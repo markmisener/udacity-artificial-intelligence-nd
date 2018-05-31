@@ -19,9 +19,9 @@ Udacity-Jupyter.pem
 dog-breed-classifier/dogImages/
 dog-breed-classifier/lfw/
 dog-breed-classifier/.ipynb_checkpoints/
-dog-breed-classifier/saved_models/weights.best.from_scratch.hdf5
-dog-breed-classifier/saved_models/weights.best.vgg16.hdf5
-dog-breed-classifier/bottleneck_features/DogVGG16Data.npz
+dog-breed-classifier/saved_models/
+dog-breed-classifier/bottleneck_features/
+dog-breed-classifier/my_imgs
 
 
 # Byte-compiled / optimized / DLL files
