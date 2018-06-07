@@ -5,6 +5,7 @@
 *.pages
 
 # specific directories and files
+scratchpad/
 HMM-ASL-Recognizer/submission
 reminder.md
 .DS_Store
