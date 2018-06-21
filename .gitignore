@@ -23,6 +23,10 @@ dog-breed-classifier/.ipynb_checkpoints/
 dog-breed-classifier/saved_models/
 dog-breed-classifier/bottleneck_features/
 dog-breed-classifier/my_imgs
+capstone/data/
+capstone/my_model.h5
+capstone/images
+capstone/detector_architectures
 
 
 # Byte-compiled / optimized / DLL files
